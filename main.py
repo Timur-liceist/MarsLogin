@@ -1,12 +1,15 @@
+from io import BytesIO
+from data.geocoder import geocode, get_ll_span, get_coordinates
+from PIL import Image
+import requests
 from flask import Flask, render_template
-from flask_login import LoginManager, login_user
+from flask_login import LoginManager, login_user, current_user, login_required, logout_user
 from werkzeug.utils import redirect
-
-from data import db_session
 from data.users import User
 from forms.reg_form import RegisterForm
 from forms.user_login import LoginForm
-
+from data import db_session, users_api
+from data import jobs_api
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -18,11 +21,37 @@ def news():
     return render_template("index.html")
 
 
-@app.route('/auto_answer')
-@app.route('/answer')
-def auto_answer():
-    pass
+@app.route('/users_show/<int:user_id>')
+def show_map(user_id):
+    # try:
+    print(1)
+    user = requests.get(f"http://127.0.0.1:5000/api/users/{user_id}").json()
+    print(2)
+    user = user["user"]
+    print(3)
+    address = user["address"]
+    print(4)
+    toponym_to_find = address
+    print(5)
+    ll = ",".join(map(str, get_coordinates(toponym_to_find)))
+    print(6)
+    map_params = {
+        "ll": ll,
+        "spn": get_ll_span(toponym_to_find)[1],
+        "l": "sat"
+    }
+    print(7)
+    map_api_server = "http://static-maps.yandex.ru/1.x/"
+    print(8)
+    response = requests.get(map_api_server, params=map_params)
+    print(9)
 
+    Image.open(BytesIO(
+        response.content)).save("static/img/img.png")
+    print(10)
+    return render_template("using_api.html", address=address, name=user["name"], surname=user["surname"])
+    # except Exception:
+    #     return "<h1>Not found user</h1>"
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -38,6 +67,11 @@ def login():
                                form=form)
     return render_template('login.html', title='Авторизация', form=form)
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
 
 @app.route('/register', methods=['GET', 'POST'])
 def reqister():
@@ -76,4 +110,6 @@ def load_user(user_id):
 
 if __name__ == "__main__":
     db_session.global_init("db/blog.db")
+    app.register_blueprint(jobs_api.blueprint)
+    app.register_blueprint(users_api.blueprint)
     app.run()
