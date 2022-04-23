@@ -15,7 +15,9 @@ blueprint = flask.Blueprint(
 def add_jobs():
     js = request.json
     if not js:
-        return "У вас в json пусто"
+        return {
+            "Message": "У вас в json пусто"
+        }
     else:
         sess = db_session.create_session()
         job = Jobs()
@@ -44,6 +46,9 @@ def add_jobs():
         job.is_finished = js["is_finished"]
         sess.add(job)
         sess.commit()
+        return {
+            "Message": "OK"
+        }
 
 
 @blueprint.route('/api/jobs')
@@ -89,6 +94,10 @@ def redact_one_job_id(job_id):
         js = request.json
         sess = db_session.create_session()
         job = sess.query(Jobs).filter().first()
+        if not job:
+            return {
+                "Message": "Not found job"
+            }
         job.id = js["id"]
         job.team_leader = js["team_leader"]
         # job.job = 1[""]
@@ -98,6 +107,9 @@ def redact_one_job_id(job_id):
         job.end_date = js["end_date"]
         job.is_finished = js["is_finished"]
         sess.commit()
+        return {
+            "Message": "OK"
+        }
     except Exception:
         return "Ой здесь вылезла ошибочка"
 # /api/jobs/<int:job_id>
