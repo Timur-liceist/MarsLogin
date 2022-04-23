@@ -3,13 +3,15 @@ from io import BytesIO
 import requests
 from PIL import Image
 from flask import Flask, render_template
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from werkzeug.utils import redirect
 
 from data import db_session, users_api
+from data import jobs
 from data import jobs_api
 from data.geocoder import get_ll_span, get_coordinates
 from data.users import User
+from forms.new_job import JobForm
 from forms.reg_form import RegisterForm
 from forms.user_login import LoginForm
 
@@ -77,13 +79,31 @@ def login():
 # @app.route("/answer")
 
 
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect("/")
 
+
+@app.route('/addjob', methods=['GET', 'POST'])
+@login_required
+def add_job():
+    form = JobForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        job = jobs.Jobs()
+        job.job = form.job.data
+        job.work_size = form.work_size.data
+        news.is_finished = form.is_finished.data
+        news.collaborators = form.collaborators.data
+        news.team_leader = form.team_leader.data
+        current_user.news.append(news)
+        db_sess.merge(current_user)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('add_job.html', title='Добавление Работы',
+                           form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def reqister():
