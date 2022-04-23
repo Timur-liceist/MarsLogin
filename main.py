@@ -1,20 +1,27 @@
 from io import BytesIO
-from data.geocoder import geocode, get_ll_span, get_coordinates
-from PIL import Image
+
 import requests
+from PIL import Image
 from flask import Flask, render_template
-from flask_login import LoginManager, login_user, current_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user
 from werkzeug.utils import redirect
+
+from data import db_session, users_api
+from data import jobs_api
+from data.geocoder import get_ll_span, get_coordinates
 from data.users import User
 from forms.reg_form import RegisterForm
 from forms.user_login import LoginForm
-from data import db_session, users_api
-from data import jobs_api
+
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
 app.secret_key = "yandex_liceist"
 
+
+@app.route("/auto_answer")
+def auto_answer():
+    return render_template("auto_answer.html")
 
 @app.route("/")
 def news():
@@ -45,7 +52,6 @@ def show_map(user_id):
     print(8)
     response = requests.get(map_api_server, params=map_params)
     print(9)
-
     Image.open(BytesIO(
         response.content)).save("static/img/img.png")
     print(10)
@@ -67,11 +73,17 @@ def login():
                                form=form)
     return render_template('login.html', title='Авторизация', form=form)
 
+
+# @app.route("/answer")
+
+
+
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect("/")
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def reqister():
