@@ -95,11 +95,10 @@ def add_job():
         job = jobs.Jobs()
         job.job = form.job.data
         job.work_size = form.work_size.data
-        news.is_finished = form.is_finished.data
-        news.collaborators = form.collaborators.data
-        news.team_leader = form.team_leader.data
-        current_user.news.append(news)
-        db_sess.merge(current_user)
+        job.is_finished = form.is_finished.data
+        job.collaborators = form.collaborators.data
+        job.team_leader = form.team_leader.data
+        db_sess.add(job)
         db_sess.commit()
         return redirect('/')
     return render_template('add_job.html', title='Добавление Работы',
