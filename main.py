@@ -7,7 +7,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from werkzeug.utils import redirect
 
 from data import db_session, users_api
-from data import jobs
+from data.jobs import Jobs
 from data import jobs_api
 from data.geocoder import get_ll_span, get_coordinates
 from data.users import User
@@ -26,8 +26,13 @@ def auto_answer():
     return render_template("auto_answer.html")
 
 @app.route("/")
-def news():
-    return render_template("index.html")
+def jobess():
+    print(1)
+    db_sess = db_session.create_session()
+    users = db_sess.query(User)
+    jobes = db_sess.query(Jobs)
+    return render_template("index.html", jobs=jobes, users=users, User=User)
+    # return render_template("index.html")
 
 
 @app.route('/users_show/<int:user_id>')
@@ -92,7 +97,7 @@ def add_job():
     form = JobForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        job = jobs.Jobs()
+        job = Jobs()
         job.job = form.job.data
         job.work_size = form.work_size.data
         job.is_finished = form.is_finished.data
