@@ -6,12 +6,13 @@ from flask import Flask, render_template, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_restful import abort
 from werkzeug.utils import redirect
-
+from data.departments import Department
 from data import db_session, users_api
 from data.jobs import Jobs
 from data import jobs_api
 from data.geocoder import get_ll_span, get_coordinates
 from data.users import User
+from forms.new_departament import DepartmentForm
 from forms.new_job import JobForm
 from forms.reg_form import RegisterForm
 from forms.user_login import LoginForm
@@ -22,6 +23,17 @@ login_manager.init_app(app)
 app.secret_key = "yandex_liceist"
 
 
+@app.route("/departments")
+def show_departments():
+    print(2)
+    db_sess = db_session.create_session()
+    users = db_sess.query(User)
+    departments = db_sess.query(Department).all()
+    # 8 %
+    try:
+        return render_template("departments.html", departments=departments, users=users, User=User, str_id=str(current_user.id))
+    except AttributeError:
+        return render_template("departments.html", departments=departments, users=users, User=User, str_id=False)
 @app.route("/auto_answer")
 def auto_answer():
     return render_template("auto_answer.html")
@@ -156,6 +168,22 @@ def add_job():
         db_sess.commit()
         return redirect('/')
     return render_template('add_job.html', title='Добавление Работы',
+                           form=form)
+@app.route('/adddepartament', methods=['GET', 'POST'])
+@login_required
+def add_departament():
+    form = DepartmentForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        department = Department()
+        department.title = form.title.data
+        department.chief = form.chief.data
+        department.members = form.members.data
+        department.email = form.email.data
+        db_sess.add(department)
+        db_sess.commit()
+        return redirect('/')
+    return render_template('add_departament.html', title='Добавление Департамента',
                            form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
