@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-
 <table class="table">
   <thead class="thead-inverse">
     <tr>
+      <th></th>
       <th>ID</th>
       <th>Title</th>
       <th>Team leader</th>
@@ -13,22 +13,36 @@
     </tr>
   </thead>
   <tbody>
-    {% for job in jobs %}
-      <tr>
-        <th scope="row">6</th>
-        <td>{{job.id}}</td>
-        <td>{{users.filter(User.id == job.team_leader).first().surname}} {{users.filter(User.id == job.team_leader).first().name}}</td>
-        <td>{{job.work_size}}</td>
-        <td>{{job.collaborators}}</td>
-        {% if job.is_finished %}
-          <td>is
-            finished</td>
-        {% else %}
-          <td>is not
-            finished</td>
+  {% for job in jobes %}
+  <tr>
+    <td>
+      {% if str_id %}
+        {% if current_user.is_authenticated and current_user.id == job.team_leader or str_id in job.collaborators.split() %}
+        <a href="/redact_job/{{ job.id }}" class="btn btn-warning">
+          Изменить
+        </a>
+        <a href="/job_delete/{{ job.id }}" class="btn btn-danger">
+          Удалить
         {% endif %}
-      </tr>
-    {% endfor %}}
+      {% endif %}
+        </a></td>
+    <td>{{job.id}}</td>
+    <td>{{job.job}}</td>
+    <td>{{users.filter(User.id == job.team_leader).first().surname}} {{users.filter(User.id ==
+      job.team_leader).first().name}}
+    </td>
+    <td>{{job.work_size}}</td>
+    <td>{{job.collaborators}}</td>
+    {% if job.is_finished %}
+    <td>is
+      finished
+    </td>
+    {% else %}
+    <td>is not
+      finished</td>
+    {% endif %}
+  </tr>
+  {% endfor %}
   </tbody>
 </table>
 {% endblock %}

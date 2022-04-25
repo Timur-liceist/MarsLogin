@@ -2,8 +2,9 @@ from io import BytesIO
 
 import requests
 from PIL import Image
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_restful import abort
 from werkzeug.utils import redirect
 
 from data import db_session, users_api
@@ -27,14 +28,62 @@ def auto_answer():
 
 @app.route("/")
 def jobess():
-    print(1)
+    print(2)
     db_sess = db_session.create_session()
     users = db_sess.query(User)
-    jobes = db_sess.query(Jobs)
-    return render_template("index.html", jobs=jobes, users=users, User=User)
+    jobes = db_sess.query(Jobs).all()
+    print(jobes)
+    print(render_template("index.html", jobes=jobes, users=users, User=User, str=str))
+    try:
+        return render_template("index.html", jobes=jobes, users=users, User=User, str_id=str(current_user.id))
+    except AttributeError:
+        return render_template("index.html", jobes=jobes, users=users, User=User, str_id=False)
     # return render_template("index.html")
-
-
+@app.route('/redact_job/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_news(id):
+    form = JobForm()
+    if request.method == "GET":
+        db_sess = db_session.create_session()
+        job = db_sess.query(Jobs).filter(Jobs.id == id
+                                          ).first()
+        if job:
+            form.collaborators.data = job.collaborators
+            form.work_size.data = job.work_size
+            form.team_leader.data = job.team_leader
+            form.job.data = job.job
+            form.is_finished.data = job.is_finished
+        else:
+            abort(404)
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        job = db_sess.query(Jobs).filter(Jobs.id == id).first()
+        if job:
+            job.collaborators = form.collaborators.data
+            job.work_size = form.work_size.data
+            job.team_leader = form.team_leader.data
+            job.job = form.job.data
+            job.is_finished = form.is_finished.data
+            db_sess.commit()
+            return redirect('/')
+        else:
+            abort(404)
+    return render_template('add_job.html',
+                           form=form, message=""
+                           )
+@app.route('/job_delete/<int:id>', methods=['GET', 'POST'])
+@login_required
+def job_delete(id):
+    db_sess = db_session.create_session()
+    job = db_sess.query(Jobs).filter(Jobs.id == id,
+                                      Jobs.user == current_user
+                                      ).first()
+    if job:
+        db_sess.delete(job)
+        db_sess.commit()
+    else:
+        abort(404)
+    return redirect('/')
 @app.route('/users_show/<int:user_id>')
 def show_map(user_id):
     # try:
