@@ -1,5 +1,5 @@
 from io import BytesIO
-
+from data.jobs import Category
 import requests
 from PIL import Image
 from flask import Flask, render_template, request
@@ -64,6 +64,7 @@ def edit_news(id):
             form.work_size.data = job.work_size
             form.team_leader.data = job.team_leader
             form.job.data = job.job
+            form.category.data = job.category
             form.is_finished.data = job.is_finished
         else:
             abort(404)
@@ -76,6 +77,7 @@ def edit_news(id):
             job.team_leader = form.team_leader.data
             job.job = form.job.data
             job.is_finished = form.is_finished.data
+            job.category = form.category.data
             db_sess.commit()
             return redirect('/')
         else:
@@ -122,11 +124,9 @@ def show_map(user_id):
     print(9)
     Image.open(BytesIO(
         response.content)).save("static/img/img.png")
-    print(10)
     return render_template("using_api.html", address=address, name=user["name"], surname=user["surname"])
     # except Exception:
     #     return "<h1>Not found user</h1>"
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -164,6 +164,7 @@ def add_job():
         job.is_finished = form.is_finished.data
         job.collaborators = form.collaborators.data
         job.team_leader = form.team_leader.data
+        job.category = form.category.data
         db_sess.add(job)
         db_sess.commit()
         return redirect('/')
