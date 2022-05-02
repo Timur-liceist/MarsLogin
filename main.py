@@ -191,7 +191,16 @@ def add_departament():
         return redirect('/')
     return render_template('add_departament.html', title='Добавление Департамента',
                            form=form)
-
+@app.route('/distribution', methods=['GET', 'POST'])
+def distribution():
+    spisok = [
+        "Уилл Смит",
+        "Очилов Тимур",
+        "Баев Артур",
+        "Плиев Александр",
+        "Джиоев Владимир",
+    ]
+    return render_template("distribution.html", spisok=spisok)
 @app.route('/register', methods=['GET', 'POST'])
 def reqister():
     form = RegisterForm()

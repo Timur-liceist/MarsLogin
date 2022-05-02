@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div align="center">
+    {% set a = 'Каюта №' %}
+    {% for i in spisok %}
+        {% if loop.first %}
+            <h3>{{ i }}-{{ a }} {{ loop.index }} -капитан корабля</h3>
+        {% else %}
+            <h3>{{ i }}-{{ a }} {{ loop.index }}</h3>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}
