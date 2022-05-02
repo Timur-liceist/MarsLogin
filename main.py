@@ -16,7 +16,7 @@ from forms.new_departament import DepartmentForm
 from forms.new_job import JobForm
 from forms.reg_form import RegisterForm
 from forms.user_login import LoginForm
-
+from forms.fake_login import FakeForm
 app = Flask(__name__)
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -127,6 +127,11 @@ def show_map(user_id):
     return render_template("using_api.html", address=address, name=user["name"], surname=user["surname"])
     # except Exception:
     #     return "<h1>Not found user</h1>"
+@app.route("/fake_login")
+def fake_login():
+    form = FakeForm()
+    return render_template("fake_login.html", form=form)
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
